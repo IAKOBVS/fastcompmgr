@@ -876,6 +876,7 @@ find_client_win(Display *dpy, Window win) {
     return win;
   }
 
+  set_ignore(dpy, NextRequest(dpy));
   if (!XQueryTree(dpy, win, &root,
       &parent, &children, &nchildren)) {
     return 0;
@@ -932,6 +933,7 @@ get_frame_extents(win* w,
   //   fprintf(stderr, "YES, HAS FOCUS: 0x%lx\n", client_window);
   // }
 
+  set_ignore(dpy, NextRequest(dpy));
   result = XGetWindowProperty(
     dpy, client_window, atom_net_frame_extents,
     0L, 4L, False, AnyPropertyType,
@@ -1547,6 +1549,7 @@ static bool is_gtk_frame_extent(Display *dpy, Window w){
   unsigned char *data = NULL;
   int result;
 
+  set_ignore(dpy, NextRequest(dpy));
   result = XGetWindowProperty(dpy, w, atom_gtk_frame_extents, 0, LONG_MAX,
     false, XA_CARDINAL, &type, &format, &nitems, &after, (unsigned char **)&data);
   if (result == Success && data!=NULL) {
@@ -1567,6 +1570,7 @@ get_opacity_prop(Display *dpy, win *w, unsigned int def) {
   unsigned long n, left;
 
   unsigned char *data;
+  set_ignore(dpy, NextRequest(dpy));
   int result = XGetWindowProperty(
     dpy, w->id, atom_opacity, 0L, 1L, False,
     XA_CARDINAL, &actual, &format, &n, &left, &data);

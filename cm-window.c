@@ -132,5 +132,6 @@ bool win_is_client(Window window){
 
 void win_register_client_events(Window window)
 {
+  set_ignore(g_dpy, NextRequest(g_dpy));
   XSelectInput(g_dpy, window, PropertyChangeMask);
 }
