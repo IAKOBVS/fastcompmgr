@@ -128,7 +128,7 @@ double shadow_opacity = .75;
 double fade_in_step = 0.028;
 double fade_out_step = 0.03;
 int fade_delta = 10;
-int fade_time = 0;
+int64_t fade_time = 0;
 Bool fade_trans = False;
 
 double inactive_opacity = 0;
@@ -252,8 +252,8 @@ set_fade(Display *dpy, win *w, double start,
 
 int
 fade_timeout(void) {
-  int now;
-  int delta;
+  int64_t now;
+  int64_t delta;
 
   if (!fades) return -1;
 
@@ -261,14 +261,15 @@ fade_timeout(void) {
   delta = fade_time - now;
 
   if (delta < 0) delta = 0;
-/* printf("timeout %d\n", delta); */
+  if (delta > INT_MAX) delta = INT_MAX;
+/* printf("timeout %d\n", (int)delta); */
 
-  return delta;
+  return (int)delta;
 }
 
 void
 run_fades(Display *dpy) {
-  int now = get_time_in_milliseconds();
+  int64_t now = get_time_in_milliseconds();
   fade *next = fades;
   int steps;
   Bool need_dequeue;
@@ -2297,7 +2298,7 @@ do_paint(Display *dpy){
 }
 
 static Bool configure_timer_started = False;
-static int configure_time = 0;
+static int64_t configure_time = 0;
 
 /// When a window is moved, or resized, a lot of ConfigureNotify events
 /// occur. However, painting and Xsyncing of complex windows, e.g.
@@ -2318,7 +2319,7 @@ check_paint(Display *dpy){
       configure_timer_started = True;
       configure_time = get_time_in_milliseconds() + EVERY_MILISEC;
     } else {
-      int delta;
+      int64_t delta;
       delta = get_time_in_milliseconds() - configure_time;
       if (delta < EVERY_MILISEC){
         return;
@@ -2338,6 +2339,7 @@ check_paint(Display *dpy){
 
 int
 main(int argc, char **argv) {
+  _program_start_secs = time(NULL);
   const static struct option longopt[] = {
     { "shadow-red", required_argument, NULL, 0 },
     { "shadow-green", required_argument, NULL, 0 },

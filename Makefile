@@ -24,7 +24,16 @@ uninstall:
 	@rm -f "${PREFIX}/bin/fastcompmgr"
 	@rm -f "${MANDIR}/fastcompmgr.1"
 
-clean:
-	rm -f $(OBJS) fastcompmgr
+test: test_timing_buffer
+	./test_timing_buffer
 
-.PHONY: uninstall clean
+test_timing_buffer: test_timing_buffer.o cm-util.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ test_timing_buffer.o cm-util.o $(LIBS)
+
+test_timing_buffer.o: test_timing_buffer.c cm-event.c cm-util.h ringbuffer.h
+	$(CC) $(CFLAGS) $(INCS) -c test_timing_buffer.c
+
+clean:
+	rm -f $(OBJS) fastcompmgr test_timing_buffer.o test_timing_buffer
+
+.PHONY: uninstall clean test

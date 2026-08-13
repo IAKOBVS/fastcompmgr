@@ -2,6 +2,7 @@
 
 #include <sys/time.h>
 #include <string.h>
+#include <stdint.h>
 
 extern time_t _program_start_secs;
 
@@ -16,11 +17,11 @@ extern time_t _program_start_secs;
 #define WRITE_ONCE(x, val) \
 do { ACCESS_ONCE(x) = (val); } while (0)
 
-static inline int
+static inline int64_t
 get_time_in_milliseconds() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  return (tv.tv_sec-_program_start_secs) * 1000 + tv.tv_usec / 1000;
+  return (int64_t)(tv.tv_sec - _program_start_secs) * 1000 + tv.tv_usec / 1000;
 }
 
 // normalize double to range 0-1
