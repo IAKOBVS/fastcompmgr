@@ -2,7 +2,7 @@ PACKAGES = x11 xcomposite xfixes xdamage xrender
 LIBS = `pkg-config --libs ${PACKAGES}` -lm
 INCS = `pkg-config --cflags ${PACKAGES}`
 CFLAGS ?= -O2 -flto -pipe
-CFLAGS += -Wall -fno-plt
+CFLAGS += -Wall -Wextra
 PREFIX = /usr/local
 MANDIR = ${PREFIX}/share/man/man1
 
