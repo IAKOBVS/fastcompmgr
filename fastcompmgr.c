@@ -2741,8 +2741,7 @@ main(int argc, char **argv) {
           break;
         case PropertyNotify:
           for (p = 0; root_background_props[p]; p++) {
-            if (ev.xproperty.atom ==
-                XInternAtom(dpy, root_background_props[p], False)) {
+            if (ev.xproperty.atom == root_background_atoms[p]) {
               if (root_tile) {
                 XClearArea(dpy, root, 0, 0, 0, 0, True);
                 XRenderFreePicture(dpy, root_tile);

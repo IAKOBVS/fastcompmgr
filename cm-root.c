@@ -17,6 +17,7 @@ const char *root_background_props[] = {
   "_XSETROOT_ID",
   0
 };
+Atom root_background_atoms[2] = {0, 0};
 
 
 static inline int
@@ -82,6 +83,10 @@ bool root_init(){
   root_width = DisplayWidth(g_dpy, g_screen);
   root_height = DisplayHeight(g_dpy, g_screen);
 
+  for (int p = 0; root_background_props[p]; p++) {
+    root_background_atoms[p] = XInternAtom(g_dpy, root_background_props[p], False);
+  }
+
   pa.subwindow_mode = IncludeInferiors;
   root_picture = XRenderCreatePicture(g_dpy, root,
     XRenderFindVisualFormat(g_dpy, DefaultVisual(g_dpy, g_screen)),
@@ -115,7 +120,7 @@ Picture root_create_tile() {
   for (p=0; root_background_props[p]; p++) {
     prop = NULL;
     res = XGetWindowProperty(g_dpy, root,
-          XInternAtom(g_dpy, root_background_props[p], False),
+          root_background_atoms[p],
           0, 4, False, AnyPropertyType, &actual_type,
           &actual_format, &nitems, &bytes_after, &prop);
     if (res != Success || prop == NULL ){
