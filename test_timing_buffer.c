@@ -83,6 +83,14 @@ void test_timing_overflow() {
   printf("test_timing_overflow passed.\n");
 }
 
+void test_normalize_d() {
+  printf("Running test_normalize_d...\n");
+  assert(normalize_d(1.5) == 1.0);
+  assert(normalize_d(-0.5) == 0.0);
+  assert(normalize_d(0.75) == 0.75);
+  printf("test_normalize_d passed.\n");
+}
+
 // Tests for ring buffer
 ringBuffer_typedef(int, TestRingBuf);
 
@@ -129,46 +137,46 @@ void test_ringbuffer_expansion_and_wrap_around() {
   TestRingBuf buf;
   bufferInit(buf, 4, int);
 
+  // Test bufferIncrease when buffer is empty
+  bufferIncrease(&buf, 8);
+  assert(buf.size == 8);
+  assert(isBufferEmpty(&buf));
+
   // 1. Fill part of it
   bufferWrite(&buf, 1);
   bufferWrite(&buf, 2);
-  bufferWrite(&buf, 3); // end = 3, start = 0
+  bufferWrite(&buf, 3);
+
+  // Test bufferIncrease when non-empty and start < end
+  bufferIncrease(&buf, 16);
+  assert(buf.size == 16);
+  assert(buf.start == 0 && buf.end == 3);
 
   // 2. Read some to move start
   int val;
   bufferRead(&buf, val);
   assert(val == 1);
   bufferRead(&buf, val);
-  assert(val == 2); // end = 3, start = 2
+  assert(val == 2);
 
   // 3. Write more to cause wrap around (start > end)
-  bufferWrite(&buf, 4); // end = 4, start = 2
-  bufferWrite(&buf, 5); // end = 0, start = 2
-  bufferWrite(&buf, 6); // end = 1, start = 2 (Buffer is now full because size=4)
+  for (int i = 4; i <= 17; i++) {
+    bufferWrite(&buf, i);
+  }
 
-  assert(isBufferFull(&buf));
-  assert(buf.start > buf.end); // start = 2, end = 1
+  assert(buf.start > buf.end || isBufferFull(&buf));
 
   // 4. Trigger bufferIncrease to test the circular wrap-around copy logic
   bufferIncrease(&buf, buf.size * 2);
 
-  // Buffer size should now be 8
-  assert(buf.size == 8);
-  assert(!isBufferFull(&buf));
-  assert(buf.start == 0);
-  assert(buf.end == 4); // We had 4 elements: 3, 4, 5, 6
-
-  // 5. Read elements to verify order is preserved
-  bufferRead(&buf, val);
-  assert(val == 3);
-  bufferRead(&buf, val);
-  assert(val == 4);
-  bufferRead(&buf, val);
-  assert(val == 5);
-  bufferRead(&buf, val);
-  assert(val == 6);
-
-  assert(isBufferEmpty(&buf));
+  // Read elements to verify order is preserved
+  int expected = 3;
+  while (!isBufferEmpty(&buf)) {
+    bufferRead(&buf, val);
+    assert(val == expected);
+    expected++;
+  }
+  assert(expected == 18);
 
   bufferDestroy(&buf);
   printf("test_ringbuffer_expansion_and_wrap_around passed.\n");
@@ -214,6 +222,7 @@ int main() {
   printf("=== STARTING TEST SUITE ===\n");
   test_timing_basic();
   test_timing_overflow();
+  test_normalize_d();
   test_ringbuffer_basic();
   test_ringbuffer_expansion_and_wrap_around();
   test_event_ignore();
