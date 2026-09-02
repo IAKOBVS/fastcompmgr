@@ -23,6 +23,22 @@ static bool rects_are_intersecting(CompRect* r1, CompRect* r2)
     return true;
 }
 
+/// Fill `out` with the intersection of r1 and r2. Returns false if the rects
+/// do not overlap (out is left untouched). Touching rects count as
+/// intersecting but yield a zero width or height intersection.
+bool rect_intersect(CompRect* r1, CompRect* r2, CompRect* out){
+    if(! rects_are_intersecting(r1, r2)){
+        return false;
+    }
+    out->x1 = (r1->x1 > r2->x1) ? r1->x1 : r2->x1;
+    out->y1 = (r1->y1 > r2->y1) ? r1->y1 : r2->y1;
+    out->x2 = (r1->x2 < r2->x2) ? r1->x2 : r2->x2;
+    out->y2 = (r1->y2 < r2->y2) ? r1->y2 : r2->y2;
+    out->w = out->x2 - out->x1;
+    out->h = out->y2 - out->y1;
+    return true;
+}
+
 /// Check if we can omit painting a window (rect). E.g., a window
 /// completely occluded by another one, does not need to be
 /// painted. Further, we try to select the largest possible ignore region
@@ -40,22 +56,14 @@ bool rect_paint_needed(CompRect* ignore_reg, CompRect* reg){
         return true;
     }
 
-    // calculate the intersection rect.
-    short x1 = (ignore_reg->x1 > reg->x1) ? ignore_reg->x1 : reg->x1;
-    short x2 = (ignore_reg->x2 < reg->x2) ? ignore_reg->x1 : reg->x1;
-    short y1 = (ignore_reg->y1 > reg->y1) ? ignore_reg->y1 : reg->y1;
-    short y2 = (ignore_reg->y2 < reg->y2) ? ignore_reg->y1 : reg->y1;
-    short w = x2 - x1;
-    short h = y2 - y1;
+    CompRect r_intersect;
+    rect_intersect(ignore_reg, reg, &r_intersect);
 
     // KISS and just use the biggest rect as new ignore rect
     if(reg->w*reg->h > ignore_reg->w*ignore_reg->h){
         *ignore_reg = *reg;
     }
-    if(w*h > ignore_reg->w*ignore_reg->h){
-        CompRect r_intersect = {.x1 = x1, .y1 = y1,
-                  .x2 = x2, .y2 = y2,
-                  .w = w, .h = h };
+    if(r_intersect.w*r_intersect.h > ignore_reg->w*ignore_reg->h){
         *ignore_reg = r_intersect;
     }
     return true;

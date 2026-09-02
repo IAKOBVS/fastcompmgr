@@ -104,6 +104,8 @@ extern win *list;
 
 win* find_win(Window id);
 win* find_win_any_parent(Window w);
+void win_hash_insert(Window id, win *w);
+void win_hash_remove(Window id);
 
 bool win_state_is_hidden(Window window);
 bool win_is_client(Window window);

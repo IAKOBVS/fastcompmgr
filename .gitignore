@@ -13,6 +13,11 @@ install-sh
 missing
 stamp-h1
 fastcompmgr
+test_timing_buffer
+test_comp_rect
+test_win_hash
+test_pipeline
+test_helper_win
 *.o
 *~
 .geany

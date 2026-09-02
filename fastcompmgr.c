@@ -1749,6 +1749,7 @@ add_win(Display *dpy, Window id, Window prev) {
 
   new->next = *p;
   *p = new;
+  win_hash_insert(id, new);
 
   if (new->a.map_state == IsViewable) {
     new->window_type = determine_wintype(dpy, id, id);
@@ -1936,6 +1937,7 @@ finish_destroy_win(Display *dpy, Window id) {
         XFixesDestroyRegion(dpy, w->extents);
         w->extents = None;
       }
+      win_hash_remove(w->id);
       free(w);
       break;
     }
@@ -2568,6 +2570,7 @@ main(int argc, char **argv) {
     "_NET_WM_WINDOW_TYPE_COMBO", False);
   win_type[WINTYPE_DND] = XInternAtom(dpy,
     "_NET_WM_WINDOW_TYPE_DND", False);
+  root_background_props_init(dpy);
 
   gaussian_map = make_gaussian_map(dpy, shadow_radius);
   presum_gaussian(gaussian_map);
@@ -2741,8 +2744,7 @@ main(int argc, char **argv) {
           break;
         case PropertyNotify:
           for (p = 0; root_background_props[p]; p++) {
-            if (ev.xproperty.atom ==
-                XInternAtom(dpy, root_background_props[p], False)) {
+            if (ev.xproperty.atom == root_background_atoms[p]) {
               if (root_tile) {
                 XClearArea(dpy, root, 0, 0, 0, 0, True);
                 XRenderFreePicture(dpy, root_tile);
